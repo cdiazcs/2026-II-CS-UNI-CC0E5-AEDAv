@@ -116,7 +116,7 @@ public:
 };
 
 template <typename T>
-ostream& operator<<(ostream &os, const Vector<T> &vec) {
+ostream& operator<<(ostream &os, Vector<T> &vec) {
     return vec.print(os);
 }
 
