@@ -44,10 +44,12 @@ public:
         return *this;
     }
 
+    // Move constructor and move assignment operator
     Vector(Vector&& other) noexcept : m_data(nullptr), m_size(0), m_capacity(0) {
         swap(other);
     }
 
+    // Move constructor and move assignment operator
     Vector& operator=(Vector&& other) noexcept {
         swap(other);
         return *this;
