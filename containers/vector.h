@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <algorithm> // para std::swap
 using namespace std;
+
 template <typename T>
 class Vector {
 private:
@@ -58,7 +59,6 @@ public:
         std::swap(m_capacity, other.m_capacity);
     }
 
-    void push_back(T value) {
         if (m_size == m_capacity) {
             size_t new_cap = (m_capacity == 0) ? 1 : m_capacity * 2;
             reserve(new_cap);
@@ -113,6 +113,8 @@ public:
             os << m_data[size()-1];
         return os << "]" << endl;
     }
+    // TODO: aplicarle una funcion a cada elemento.
+    //       ej. sumarle un valor x
 };
 
 template <typename T>
