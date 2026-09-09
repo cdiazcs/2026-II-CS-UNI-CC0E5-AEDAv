@@ -49,7 +49,7 @@ public:
         swap(other);
     }
 
-    // Move constructor and move assignment operator
+    // Move assignment operator
     Vector& operator=(Vector&& other) noexcept {
         swap(other);
         return *this;
