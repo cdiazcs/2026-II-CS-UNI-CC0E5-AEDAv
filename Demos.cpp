@@ -19,6 +19,6 @@ void DemoVector() {
     vec.print(of);
     of.close();
 
-    cout << "Vector using count directly: ";
+    cout << "Vector using cout directly: ";
     cout << vec << endl;
 }
