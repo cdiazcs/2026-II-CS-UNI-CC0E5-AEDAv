@@ -8,6 +8,11 @@ using namespace std;
 // para ejecutar: ./main
 // g++ -std=c++23 main.cpp Demos.cpp -o main
 int main() {
-    DemoVector();
+    //define variable
+    TX x;
+            
+    cin>>x;
+    
+    DemoVector(x);
     return 0;
 }

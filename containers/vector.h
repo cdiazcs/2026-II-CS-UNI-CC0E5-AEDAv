@@ -61,15 +61,15 @@ public:
         std::swap(m_capacity, other.m_capacity);
     }
 
-        if (m_size == m_capacity) {
-            size_t new_cap = (m_capacity == 0) ? 1 : m_capacity * 2;
-            reserve(new_cap);
+    void push_back(const T& value) {
+        if (m_size >= m_capacity) {
+            reserve(m_capacity == 0 ? 1 : m_capacity * 2);
         }
-        m_data[m_size] = value;
-        ++m_size;
+        m_data[m_size++] = value;
     }
 
     void pop_back() {
+
         if (m_size > 0) {
             --m_size;
             // m_data[m_size].~T();
@@ -117,6 +117,16 @@ public:
     }
     // TODO: aplicarle una funcion a cada elemento.
     //       ej. sumarle un valor x
+    
+    //define vector adition method
+    
+    void add(T& x)    {
+        for(size_t i=0;i<size();i++){
+            m_data[i]+=x;
+        }
+
+    }
+
 };
 
 template <typename T>

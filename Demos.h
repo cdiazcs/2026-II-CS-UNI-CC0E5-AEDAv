@@ -2,6 +2,6 @@
 #define __DEMOS_H__
 
 #include "types.h"
-void DemoVector();
+void DemoVector(TX x);
 
 #endif // __DEMOS_H__
