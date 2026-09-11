@@ -61,6 +61,7 @@ public:
         std::swap(m_capacity, other.m_capacity);
     }
 
+    void push_back(const T& value) {
         if (m_size == m_capacity) {
             size_t new_cap = (m_capacity == 0) ? 1 : m_capacity * 2;
             reserve(new_cap);
@@ -72,7 +73,6 @@ public:
     void pop_back() {
         if (m_size > 0) {
             --m_size;
-            // m_data[m_size].~T();
         }
     }
 
@@ -96,9 +96,9 @@ public:
         return m_data[index];
     }
 
-    T size() const { return m_size; }
-    T capacity() const { return m_capacity; }
-    bool empty() const { return m_size == 0; }
+    size_t size() const { return m_size; }
+    size_t capacity() const { return m_capacity; }
+    bool   empty() const { return m_size == 0; }
 
     void clear() {
         for (size_t i = 0; i < m_size; ++i) {
@@ -107,7 +107,8 @@ public:
         m_size = 0;
     }
 
-    ostream &print(ostream &os){
+    // Persistencia
+    ostream &write(ostream &os){
         os << "[";
         for (size_t i = 0; i < size()-1; ++i)
             os << m_data[i] << " ";
@@ -115,13 +116,30 @@ public:
             os << m_data[size()-1];
         return os << "]" << endl;
     }
+
+    // TODO: implementar la lectura de un vector desde un stream
+    istream &read(istream &is){
+        // Implementation for reading vector from stream
+    }
     // TODO: aplicarle una funcion a cada elemento.
     //       ej. sumarle un valor x
+    // Variadic template to allow passing additional arguments to the function
+    template <typename Func, typename... Args>
+    void ApplyFunction(Func func, Args... args) {
+        for (size_t i = 0; i < size(); ++i) {
+            func(m_data[i], args...);
+        }
+    }
 };
 
 template <typename T>
 ostream& operator<<(ostream &os, Vector<T> &vec) {
-    return vec.print(os);
+    return vec.write(os);
+}
+
+template <typename T>
+istream& operator>>(istream &is, Vector<T> &vec) {
+    return vec.read(is);
 }
 
 #endif // __VECTOR_H__
