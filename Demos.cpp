@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream> // ofstream para escribir en archivo
 #include <string>
+#include "foreach.h"
 #include "containers/vector.h"
 #include "Demos.h"
 using namespace std;
@@ -36,15 +37,18 @@ void DemoVector() {
     cout << "Vector using cout directly: ";
     cout << vec << endl;
 
-    vec.ApplyFunction(AddOne);
+    ::ApplyFunction(vec, AddOne);
+    // vec.ApplyFunction(AddOne);
     cout << "Vector after applying AddOne function: ";
     cout << vec << endl;
 
-    vec.ApplyFunction(AddX<TX>, 5);
+    ::ApplyFunction(vec, AddX<TX>, 5);
+    //vec.ApplyFunction(AddX<TX>, 5);
     cout << "Vector after applying lambda function (Add 5): ";
     cout << vec << endl;
 
-    vec.ApplyFunction(Square);
+    ::ApplyFunction(vec, Square);
+    // vec.ApplyFunction(Square);
     cout << "Vector after applying Square function: ";
     cout << vec << endl;
 
@@ -55,7 +59,8 @@ void DemoVector() {
     cout << "VectorStr: ";
     cout << strVec << endl;
 
-    strVec.ApplyFunction(AddX<string>, "!");
+    ::ApplyFunction(strVec, AddX<string>, "!-");
+    // strVec.ApplyFunction(AddX<string>, "!");
     cout << "VectorStr after applying lambda function (Add !): ";
     cout << strVec << endl;
 

@@ -107,6 +107,9 @@ public:
         m_size = 0;
     }
 
+    T* begin() { return m_data; }
+    T* end()   { return m_data + m_size; }
+
     // Persistencia
     ostream &write(ostream &os){
         os << "[";
@@ -114,7 +117,7 @@ public:
             os << m_data[i] << " ";
         if (size() > 0)
             os << m_data[size()-1];
-        return os << "]" << endl;
+        return os << "]";
     }
 
     // TODO: implementar la lectura de un vector desde un stream
@@ -124,6 +127,7 @@ public:
     // TODO: aplicarle una funcion a cada elemento.
     //       ej. sumarle un valor x
     // Variadic template to allow passing additional arguments to the function
+    // Iterator Level #0
     template <typename Func, typename... Args>
     void ApplyFunction(Func func, Args... args) {
         for (size_t i = 0; i < size(); ++i) {
