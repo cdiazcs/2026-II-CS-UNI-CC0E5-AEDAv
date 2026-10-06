@@ -5,7 +5,8 @@
 #include <stdexcept>
 #include <algorithm> // para std::swap
 
-using T = int;
+
+template<typename T>
 class Vector {
 private:
     T  * data,
