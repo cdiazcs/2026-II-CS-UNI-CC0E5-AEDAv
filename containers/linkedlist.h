@@ -3,6 +3,7 @@
 #include <mutex>
 #include "GeneralNode.h"
 #include "GeneralIterator.h"
+#include "../traits.h"
 #include "../foreach.h"
 
 template <typename T>
@@ -26,16 +27,6 @@ public:
     LinkedListForwardIterator& operator++() { Parent::m_ptr = Parent::m_ptr->m_pNext; return *this; }
 };
 
-template <typename T, typename _Compare>
-struct DefaultTraits {
-    using value_type        = T;
-    using Compare           = _Compare;
-};
-template <typename T, typename _Compare = std::less<T>>
-struct AscendingTraits : public DefaultTraits<T, _Compare> {};
-
-template <typename T, typename _Compare = std::greater<T>>
-struct DescendingTraits : public DefaultTraits<T, _Compare> {};
 template <typename T>
 struct LinkedListAscTraits : public AscendingTraits<T> {
     using Node              = LinkedListNode<T>;
@@ -56,15 +47,15 @@ public:
     using ForwardIterator   = typename Traits::ForwardIterator;
     using Compare           = typename Traits::Compare;
     using Delim             = typename Node::Delim;
-private:
+protected:
     NodePtr m_pRoot = nullptr; // puntero al primer nodo de la lista enlazada
     NodePtr m_pTail = nullptr; // puntero al último nodo de la lista enlazada
     
     Compare m_comp; // comparador para ordenar los nodos de la lista
     mutable std::mutex m_mutex; // mutex para sincronización
 
-    NodePtr GetRoot() const { return m_pRoot; }
-    void internalInsert(const value_type& value, Ref ref, NodePtr& rParent);
+    virtual NodePtr GetRoot() const { return m_pRoot; }
+    virtual void internalInsert(const value_type& value, Ref ref, NodePtr& rParent);
 
 public:
     LinkedList() {}
@@ -75,12 +66,12 @@ public:
             push_back(v.first, v.second);
     }
 
-    void clear();
+    virtual void clear();
     virtual ~LinkedList(){ clear(); };
 
-    void push_back(const value_type& value, Ref ref);
+    virtual void push_back(const value_type& value, Ref ref);
 
-    bool empty() const { return m_pRoot == nullptr; }
+    virtual bool empty() const { return m_pRoot == nullptr; }
 
     void insert(const value_type& value, Ref ref) {
         scoped_lock lock(m_mutex);
@@ -123,10 +114,12 @@ public:
     }
     
     // Iterators
+    virtual ForwardIterator begin() const { return ForwardIterator(m_pRoot); }
+    virtual ForwardIterator end() const { return ForwardIterator(nullptr); }
+    
     // ForwardIterator begin() { return ForwardIterator(m_pRoot); }
     // ForwardIterator end() { return ForwardIterator(nullptr); }
-    ForwardIterator begin() const { return ForwardIterator(m_pRoot); }
-    ForwardIterator end() const { return ForwardIterator(nullptr); }
+   
 
     template <typename Func, typename... Args>
     void ApplyFunction(Func func, Args... args) {
@@ -150,8 +143,12 @@ public:
 template <typename Traits>
 LinkedList<Traits>& LinkedList<Traits>::operator=(const LinkedList<Traits>& other){ 
     clear();
+    if(this == &other)
+        return *this;
+    clear();
     if(!other.m_pRoot)
-        return;
+        return *this;
+
     std::lock_guard<std::mutex> lock(other.m_mutex);
 
     m_pRoot = new Node(other.GetRoot()->getValue(), other.GetRoot()->getRef(), nullptr);
@@ -169,11 +166,18 @@ LinkedList<Traits>& LinkedList<Traits>::operator=(const LinkedList<Traits>& othe
 }
 
 template <typename Traits>
-void LinkedList<Traits>::clear(){
-    scoped_lock lock(m_mutex);
-    for (auto it = begin(); it != end(); ++it){
-        delete& (*it);
+void LinkedList<Traits>::clear()
+{
+    std::scoped_lock lock(m_mutex);
+
+    auto curr = m_pRoot;
+
+    while (curr != nullptr) {
+        auto next = curr->m_pNext;
+        delete curr;
+        curr = next;
     }
+
     m_pRoot = nullptr;
     m_pTail = nullptr;
 }

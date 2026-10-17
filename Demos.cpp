@@ -8,6 +8,9 @@
 #include "containers/vector.h"
 #include "containers/linkedlist.h"
 #include "Demos.h"
+#include "containers/LC.h"
+#include "containers/LDE.h"
+#include "containers/LDEC.h"
 using namespace std;
 
 void AddOne(GeneralNode<TX> &node) {
@@ -218,4 +221,50 @@ void DemoLinkedList()
     in.close();
     cout << "LinkedList leida desde archivo: " << new_list << endl;
     TestForwardTraversal(new_list);
+}
+void DemoDoublyLinkedList()
+{
+    DoublyLinkedList<DoublyLinkedListAscTraits<TX>> list;
+
+    list.push_back(5, 50);
+    list.push_back(1, 10);
+    list.push_back(8, 80);
+
+    cout << "LDE: " << list << '\n';
+
+    cout << "Recorrido inverso: ";
+    for (auto it = list.rbegin(); it != list.rend(); ++it)
+        cout << *it << " ";
+    cout << '\n';
+}
+
+void DemoCircularLinkedList()
+{
+    CircularList<LinkedListAscTraits<TX>> list;
+
+    list.push_back(5, 50);
+    list.push_back(1, 10);
+    list.push_back(8, 80);
+
+    cout << "LC: " << list << '\n';
+
+    list.clear();
+}
+
+void DemoCircularDoublyLinkedList()
+{
+    CircularDoublyLinkedList<DoublyLinkedListAscTraits<TX>> list;
+
+    list.push_back(5, 50);
+    list.push_back(1, 10);
+    list.push_back(8, 80);
+
+    cout << "LDEC: " << list << '\n';
+
+    cout << "Recorrido inverso: ";
+    for (auto it = list.rbegin(); it != list.rend(); ++it)
+        cout << *it << " ";
+    cout << '\n';
+
+    list.clear();
 }
