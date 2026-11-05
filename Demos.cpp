@@ -13,7 +13,16 @@
 #include "containers/binarytree.h"
 #include "utilities/printcolored.h"
 #include "Demos.h"
+#include <cassert>
+#include "containers/avl.h"
+#include <type_traits>
+#include "containers/avlmap.h"
+#include <sstream>
 using namespace std;
+
+static_assert(
+    std::is_base_of_v<BinaryTreeNode<TX>, AVLNode<TX>>
+);
 
 void AddOne(GeneralNode<TX> &node) {
     node.value() += 1;
@@ -320,6 +329,24 @@ void DemoHeap() {
     MaxHeap maxHeap;
     TestHeap(maxHeap);
 }
+//prueba 
+
+template <typename TreeContainer>
+void MostrarEstado(
+    const string& titulo,
+    const TreeContainer& tree
+) {
+    cout << "\n-" << titulo << " -\n";
+
+    cout << "Cantidad de nodos: "
+         << tree.size() << endl;
+
+    cout << "Altura del arbol: "
+         << tree.height() << endl;
+
+    tree.printTreeConLineas();
+}
+
 
 template <typename TreeContainer>
 void TestBinaryTree(TreeContainer &tree, const string &filename) {
@@ -327,6 +354,7 @@ void TestBinaryTree(TreeContainer &tree, const string &filename) {
 
     // Pruebas de insercion y persistencia
     TestContainer(tree, {{50, 5}, {20, 2}, {80, 8}, {10, 1}, {30, 3}, {70, 7}, {90, 9}}, filename);
+    MostrarEstado("Estructura inicial del arbol", tree);
     // Recorrido in-order
     TestTraversal(tree);
 
@@ -349,9 +377,269 @@ void TestBinaryTree(TreeContainer &tree, const string &filename) {
     cout << "Arbol tras operator=: " << tree << endl;
 }
 
+template <typename TreeContainer>
+void TestRemove() {
+    cout << "\nPruebas de Remove\n";
+
+    TreeContainer tree;
+
+    tree.insert(50, 5);
+    tree.insert(20, 2);
+    tree.insert(80, 8);
+    tree.insert(10, 1);
+    tree.insert(30, 3);
+    tree.insert(70, 7);
+    tree.insert(90, 9);
+
+    MostrarEstado("Arbol inicial", tree);
+    // prueba iteradores
+    
+    cout << "\n 6 recorridos \n";
+
+    cout << "PreOrder: ";
+    for (auto& nodo : tree.PreOrder())
+        cout << nodo.getValue() << " ";
+    cout << endl;
+
+    cout << "ReversePreOrder: ";
+    for (auto& nodo : tree.ReversePreOrder())
+        cout << nodo.getValue() << " ";
+    cout << endl;
+
+    cout << "InOrder: ";
+    for (auto& nodo : tree.InOrder())
+        cout << nodo.getValue() << " ";
+    cout << endl;
+
+    cout << "ReverseInOrder: ";
+    for (auto& nodo : tree.ReverseInOrder())
+        cout << nodo.getValue() << " ";
+    cout << endl;
+
+    cout << "PostOrder: ";
+    for (auto& nodo : tree.PostOrder())
+        cout << nodo.getValue() << " ";
+    cout << endl;
+
+    cout << "ReversePostOrder: ";
+    for (auto& nodo : tree.ReversePostOrder())
+        cout << nodo.getValue() << " ";
+    cout << endl;
+
+
+    // casos
+    bool eliminado = tree.remove(10);
+    assert(eliminado);
+    assert(tree.size() == 6);
+    MostrarEstado("Eliminar hoja 10", tree);
+
+   
+    eliminado = tree.remove(20);
+    assert(eliminado);
+    assert(tree.size() == 5);
+    MostrarEstado("Eliminar nodo 20", tree);
+
+   
+    eliminado = tree.remove(50);
+    assert(eliminado);
+    assert(tree.size() == 4);
+    MostrarEstado("Eliminar nodo 50", tree);
+
+   
+    eliminado = tree.remove(999);
+    assert(!eliminado);
+
+    cout << "Eliminar 888: valor no encontrado\n";
+
+    
+    TreeContainer pruebaRaiz;
+
+    pruebaRaiz.insert(50, 5);
+    pruebaRaiz.insert(20, 2);
+
+    MostrarEstado("Raiz con un hijo", pruebaRaiz);
+
+    eliminado = pruebaRaiz.remove(50);
+    assert(eliminado);
+    assert(pruebaRaiz.size() == 1);
+
+    MostrarEstado("Despues de eliminar raiz", pruebaRaiz);
+
+    //arbol vacio
+    eliminado = pruebaRaiz.remove(20);
+    assert(eliminado);
+    assert(pruebaRaiz.size() == 0);
+
+    MostrarEstado("Arbol vacio", pruebaRaiz);
+}
+template <typename TreeContainer>
+void TestRotacionAVL(
+    const string& nombre,
+    TX a, TX b, TX c,
+    TX raizEsperada
+) {
+    TreeContainer tree;
+
+    tree.insert(a, a);
+    tree.insert(b, b);
+    tree.insert(c, c);
+
+    MostrarEstado(nombre, tree);
+
+    assert(tree.size() == 3);
+    assert(tree.height() == 2);
+    assert((*tree.PreOrder().begin()).getValue() == raizEsperada);
+
+    cout << "Rotacion " << nombre << ": correcta\n";
+}
+
 void DemoBinaryTree() {
     cout << "\n";
     PrintColored(cout, "Pruebas para BinaryTree", Color::Yellow);
     BinaryTree<BinaryTreeAscTraits<TX>> tree;
     TestBinaryTree(tree, "binarytree.txt");
+    TestRemove<BinaryTree<BinaryTreeAscTraits<TX>>>();
+    cout << "\n-Prueba principal AVL\n";
+
+    AVLTree<AVLAscTraits<TX>> avl;
+
+    avl.insert(50, 5);
+    avl.insert(20, 2);
+    avl.insert(80, 8);
+
+    cout << "AVL usando operator<<: " << avl << endl;
+
+    cout << "Nodos: " << avl.size() << endl;
+    cout << "Altura: " << avl.height() << endl;
+
+    avl.printTreeConLineas();
+
+    cout << "\n-Rotacion AVL LL \n";
+
+    AVLTree<AVLAscTraits<TX>> pruebaLL;
+
+    pruebaLL.insert(30, 3);
+    pruebaLL.insert(20, 2);
+    pruebaLL.insert(10, 1);
+
+    MostrarEstado("AVL DESPUES DE ROTACION LL", pruebaLL);
+
+    cout << "PreOrder: ";
+    for (auto& nodo : pruebaLL.PreOrder()) {
+    cout << nodo.getValue() << " ";
+    }
+    cout << endl;
+
+    assert(pruebaLL.size() == 3);
+    assert(pruebaLL.height() == 2);
+    assert((*pruebaLL.PreOrder().begin()).getValue() == 20);
+
+    
+cout << "\n4 Rotaciones AVL \n";
+
+using AVL = AVLTree<AVLAscTraits<TX>>;
+
+TestRotacionAVL<AVL>("LL", 30, 20, 10, 20);
+TestRotacionAVL<AVL>("RR", 10, 20, 30, 20);
+TestRotacionAVL<AVL>("LR", 30, 10, 20, 20);
+TestRotacionAVL<AVL>("RL", 10, 30, 20, 20);
+
+
+
+
+cout << "\n Eliminacion AVL \n";
+
+AVLTree<AVLAscTraits<TX>> pruebaEliminar;
+
+pruebaEliminar.insert(30, 3);
+pruebaEliminar.insert(20, 2);
+pruebaEliminar.insert(40, 4);
+pruebaEliminar.insert(10, 1);
+pruebaEliminar.insert(25, 5);
+
+MostrarEstado("AVL ANTES DE ELIMINAR", pruebaEliminar);
+
+
+bool eliminado = pruebaEliminar.remove(40);
+
+assert(eliminado);
+assert(pruebaEliminar.size() == 4);
+assert(pruebaEliminar.height() == 3);
+
+MostrarEstado("AVL DESPUES DE ELIMINAR 40", pruebaEliminar);
+
+
+assert(
+    (*pruebaEliminar.PreOrder().begin()).getValue() == 20
+);
+
+cout << "Eliminacion y rebalanceo AVL: correcto\n";
+
+
+
+cout << "\n  TestRemove \n";
+
+TestRemove<AVLTree<AVLAscTraits<TX>>>();
+
+cout << "\n Demo generica AVL\n";
+
+AVLTree<AVLAscTraits<TX>> avlDemo;
+
+TestBinaryTree(avlDemo, "avl.txt");
+
+
+
+cout << "\nPruebas de AVLMap ==========\n";
+
+AVLMap<AVLAscTraits<TX>> mapa;
+
+
+mapa[5] = 54;
+mapa[8] = 80;
+mapa[5] = 100;
+
+cout << "Mapa: " << mapa << endl;
+cout << "Valor de mapa[5]: " << mapa[5] << endl;
+cout << "Cantidad de nodos: " << mapa.size() << endl;
+cout << "Altura del arbol: " << mapa.height() << endl;
+
+
+assert(mapa[5] == 100);
+assert(mapa[8] == 80);
+assert(mapa.size() == 2);
+
+
+mapa.printTreeConLineas();
+
+
+std::stringstream archivo;
+archivo << mapa;
+
+AVLMap<AVLAscTraits<TX>> mapaLeido;
+archivo >> mapaLeido;
+
+assert(mapaLeido[5] == 100);
+assert(mapaLeido[8] == 80);
+
+cout << "Mapa recuperado: " << mapaLeido << endl;
+
+
+bool eliminadoMapa = mapa.remove(5);
+
+assert(eliminadoMapa);
+assert(mapa.size() == 1);
+
+cout << "Mapa despues de eliminar 5: "
+     << mapa << endl;
+
+cout << "AVLMap: pruebas correctas\n";
+
+
+
+
 }
+
+
+
+
+
