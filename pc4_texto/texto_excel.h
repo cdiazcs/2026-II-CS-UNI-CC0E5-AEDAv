@@ -1,7 +1,7 @@
 #ifndef PC4_TEXTO_EXCEL_H
 #define PC4_TEXTO_EXCEL_H
 
-// el warning de parametro sin usar viene de containers/ (codigo compartido), no de este modulo
+// Evita warnings ajenos a este módulo.
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #include "containers/hash_table.h"
@@ -24,24 +24,24 @@
 namespace pc4texto {
 using std::string;
 
-// valor de una celda: puede ser numero o texto
+// Valor numérico o texto.
 struct Value {
     string text;
     bool numeric = false;
     double number = 0;
 
-    // crea un valor numerico (no acepta infinito ni NaN)
+    // Crea un número finito.
     static Value num(double n) {
         if (!std::isfinite(n)) throw std::runtime_error("Resultado no finito");
         return {"", true, n};
     }
 
-    // crea un valor de texto
+    // Crea texto.
     static Value str(string s) {
         return {std::move(s), false, 0};
     }
 
-    // texto que se muestra al usuario
+    // Convierte el valor a texto visible.
     string display() const {
         if (!numeric) return text;
         std::ostringstream out;
@@ -49,7 +49,7 @@ struct Value {
         return out.str();
     }
 
-    // convierte a numero; si es texto que no es numero lanza error
+    // Convierte el valor a número.
     double asNumber() const {
         if (numeric) return number;
         try {
@@ -62,12 +62,12 @@ struct Value {
     }
 };
 
-// la hoja de calculo: guarda el texto de cada celda y evalua formulas
+// Hoja de cálculo.
 class Sheet {
 public:
     Sheet() = default;
 
-    // copia: pasamos celda por celda a una tabla nueva
+    // Copia las celdas.
     Sheet(const Sheet& other) {
         for (const auto& node : other.state_->cells) {
             const auto entry = node.getValue();
@@ -75,7 +75,7 @@ public:
         }
     }
 
-    // movimiento: intercambiamos las tablas (la otra hoja queda vacia)
+    // Intercambia el estado interno.
     Sheet(Sheet&& other) {
         state_.swap(other.state_);
     }
@@ -92,21 +92,21 @@ public:
         return *this;
     }
 
-    // guarda el contenido de una celda (texto, numero o formula con '=')
+    // Guarda una celda.
     void set(string cell, const string& raw) {
         cell = upper(cell);
         if (!validCell(cell)) throw std::runtime_error("Celda invalida: " + cell);
-        coords(cell);  // solo para revisar que este dentro de los limites
+        coords(cell);  // Comprueba los límites
         state_->set(cell, raw);
     }
 
-    // devuelve el contenido tal cual se escribio (sin calcular)
+    // Devuelve el contenido original.
     string get(const string& cell) const {
         const string* raw = findRaw(upper(cell));
         return raw ? *raw : "";
     }
 
-    // calcula el valor de una celda
+    // Calcula una celda.
     Value calculate(const string& cell) const {
         const string name = upper(cell);
         if (!validCell(name)) throw std::runtime_error("Celda invalida");
@@ -114,21 +114,21 @@ public:
         return evaluator.cellValue(name);
     }
 
-    // cantidad de celdas guardadas
+    // Cantidad de celdas guardadas.
     size_t size() const {
         return state_->count;
     }
 
-    // guarda la hoja: una cabecera y la tabla con nuestro operator<<
+    // Guarda la hoja.
     void save(const string& path) const {
         std::ofstream out(path, std::ios::binary);
         if (!out) throw std::runtime_error("No se pudo guardar: " + path);
-        // queda como [(("A1":"10"),0),...]; los textos van entre comillas con std::quoted
+        // Los textos se escriben con comillas.
         out << "PC4TEXTO2\n" << state_->cells << '\n';
         if (!out) throw std::runtime_error("Error durante escritura");
     }
 
-    // carga una hoja con nuestro operator>>; solo reemplaza la hoja si todo salio bien
+    // Carga la hoja.
     void load(const string& path) {
         std::ifstream in(path, std::ios::binary);
         if (!in) throw std::runtime_error("No se pudo abrir: " + path);
@@ -136,7 +136,7 @@ public:
         std::getline(in, header);
         if (header != "PC4TEXTO2") throw std::runtime_error("Formato de archivo invalido");
 
-        // leemos en una tabla aparte; si algo falla la hoja actual no cambia
+        // Lee en una tabla temporal.
         in >> std::ws;
         if (in.peek() != '[') throw std::runtime_error("Archivo corrupto");
         auto loaded = std::make_unique<CellState>();
@@ -145,7 +145,7 @@ public:
         in >> std::ws;
         if (!in.eof()) throw std::runtime_error("Datos sobrantes al final del archivo");
 
-        // revisamos que todas las claves sean celdas validas y las contamos
+        // Valida las celdas cargadas.
         for (const auto& node : loaded->cells) {
             const string cell = node.getValue().getKey();
             if (!validCell(cell)) throw std::runtime_error("Celda corrupta: " + cell);
@@ -158,10 +158,9 @@ public:
 private:
     using CellTable = HashTable<HashTableTraits<string, string>>;
 
-    // guardamos las celdas en nuestro HashTable (por dentro es un AVL): "A1" -> contenido
+    // Estado de las celdas.
     struct CellState {
-        // mutable porque contains y operator[] no son const (bloquean el mutex)
-        // y los usamos tambien en metodos const como get y calculate
+        // Necesario para usar métodos de la tabla desde métodos const.
         mutable CellTable cells;
         size_t count = 0;
 
@@ -171,10 +170,10 @@ private:
         }
     };
 
-    // usamos un puntero para cambiar toda la tabla de una vez (en LOAD y al mover)
+    // Estado reemplazable con carga o movimiento.
     std::unique_ptr<CellState> state_ = std::make_unique<CellState>();
 
-    // busca el contenido de una celda; nullptr si no existe
+    // Busca una celda; devuelve nullptr si no existe.
     const string* findRaw(const string& cell) const {
         const CellState& state = *state_;
         if (!state.cells.contains(cell)) return nullptr;
@@ -191,13 +190,13 @@ private:
         return s;
     }
 
-    // revisa que el nombre sea letras mayusculas y luego numeros, como "A1" o "BC12"
+    // Valida el nombre de una celda.
     static bool validCell(const string& name) {
         static const std::regex pattern("[A-Z]+[1-9][0-9]*");
         return std::regex_match(name, pattern);
     }
 
-    // convierte "B3" en (columna 2, fila 3)
+    // Convierte un nombre a columna y fila.
     static std::pair<int, int> coords(const string& name) {
         int col = 0;
         size_t i = 0;
@@ -211,7 +210,7 @@ private:
         return {col, static_cast<int>(row)};
     }
 
-    // convierte (columna 2, fila 3) en "B3"
+    // Convierte columna y fila a nombre.
     static string cellName(int col, int row) {
         string letters;
         while (col > 0) {
@@ -222,7 +221,7 @@ private:
         return letters + std::to_string(row);
     }
 
-    // valor de una celda sin formula: numero decimal como "12", "-3.5" o "1e3"; si no, texto
+    // Convierte números literales; los demás valores son texto.
     static Value literalValue(const string& raw) {
         static const std::regex decimal(R"(\s*[+-]?([0-9]+\.?[0-9]*|\.[0-9]+)([eE][+-]?[0-9]+)?)");
         if (std::regex_match(raw, decimal)) {
@@ -231,20 +230,20 @@ private:
                 const double n = std::stod(raw, &used);
                 if (used == raw.size() && std::isfinite(n)) return Value::num(n);
             } catch (const std::logic_error&) {
-                // fuera de rango: se queda como texto
+                // Conserva el texto si no es número válido.
             }
         }
         return Value::str(raw);
     }
 
-    // un argumento de funcion; emptyCell es true si vino de una celda vacia de un rango
+    // Argumento de una función.
     struct Argument {
         Value value;
         bool emptyCell = false;
     };
     using Arguments = std::vector<Argument>;
 
-    // SUMA, PROMEDIO, MIN y MAX; menos SUMA, todas ignoran las celdas vacias del rango
+    // Funciones agregadas.
     static Value aggregate(const string& name, const Arguments& args) {
         const bool sum = name == "SUMA" || name == "SUM";
         const bool average = name == "PROMEDIO" || name == "AVERAGE";
@@ -265,13 +264,13 @@ private:
             }
             ++used;
         }
-        // si no quedo ningun valor: PROMEDIO da error y las demas dan 0
+        // Promedio sin valores es error; otros resultados quedan en cero.
         if (used == 0 && average) throw std::runtime_error("Division por cero");
         if (average) result /= used;
         return Value::num(result);
     }
 
-    // CONTAR: cuenta solo los numeros; las celdas vacias no cuentan
+    // Cuenta números.
     static Value count(const Arguments& args) {
         size_t total = 0;
         for (const Argument& arg : args) {
@@ -280,13 +279,13 @@ private:
         return Value::num(static_cast<double>(total));
     }
 
-    // para LARGO, MAYUSC y MINUSC: revisa que haya un solo argumento y lo da como texto
+    // Verifica un único argumento de texto.
     static string onlyText(const string& name, const Arguments& args) {
         if (args.size() != 1) throw std::runtime_error(name + " requiere un argumento");
         return args[0].value.display();
     }
 
-    // ejecuta una funcion con sus argumentos ya calculados
+    // Ejecuta una función.
     static Value callFunction(const string& name, const Arguments& args) {
         if (name == "SUMA" || name == "SUM" || name == "PROMEDIO" || name == "AVERAGE" ||
             name == "MIN" || name == "MAX") {
@@ -306,36 +305,37 @@ private:
         throw std::runtime_error("Funcion desconocida: " + name);
     }
 
-    // limites para que la recursion no reviente la pila del programa
-    static constexpr int maxDependencies = 1000;  // celdas con formula encadenadas
-    static constexpr int maxNesting = 1000;       // parentesis y funciones abiertos a la vez
+    // Límites de profundidad.
+    static constexpr int maxDependencies = 1000;
+    static constexpr int maxNesting = 1000;
 
-    // estado de una celda durante un calculo (como los colores de un DFS)
+    // Estado durante el cálculo.
     enum class State { Unvisited, Active, Done };
 
+    // Información calculada de una celda.
     struct CellInfo {
         State state = State::Unvisited;
         Value result;
         bool emptyCell = false;  // true si la celda no existe en la hoja
     };
 
-    // hace un calculo: recuerda que celdas ya calculo y cuales estan en curso
+    // Evalúa fórmulas y referencias.
     class Evaluator {
     public:
         explicit Evaluator(const Sheet& sheet) : sheet_(sheet) {}
 
-        // valor de una celda; si es formula la evaluamos (DFS sobre las referencias)
+        // Obtiene el valor de una celda.
         Value cellValue(const string& cell, bool* emptyCell = nullptr) {
             const State state = visited_[cell].state;
             if (state == State::Active) throw std::runtime_error("Referencia circular: " + cell);
             if (state == State::Unvisited) compute(cell);
-            // volvemos a buscar porque la tabla pudo cambiar durante la recursion
+            // Busca otra vez tras la recursión.
             const CellInfo& info = visited_[cell];
             if (emptyCell) *emptyCell = info.emptyCell;
             return info.result;
         }
 
-        // cuenta los parentesis y funciones abiertos (ver maxNesting)
+        // Controla el anidamiento.
         void openNesting() {
             if (++nesting_ > maxNesting) throw std::runtime_error("Formula demasiado anidada");
         }
@@ -350,11 +350,11 @@ private:
         int dependencies_ = 0;
         int nesting_ = 0;
 
-        // calcula una celda que todavia no se visito
+        // Calcula una celda nueva.
         void compute(const string& cell) {
             const string* raw = sheet_.findRaw(cell);
             if (!raw || raw->empty() || raw->front() != '=') {
-                // celda sin formula; si no existe vale 0
+                // Celda vacía o sin fórmula vale cero.
                 CellInfo& info = visited_[cell];
                 info.result = raw ? literalValue(*raw) : Value::num(0);
                 info.emptyCell = (raw == nullptr);
@@ -372,15 +372,12 @@ private:
         }
     };
 
-    // Parser recursivo descendente, una funcion por regla:
-    //   expr maneja + - &, term maneja * /, unary los signos de adelante y
-    //   primary los numeros, textos, celdas, funciones y parentesis.
-    // Asi se respeta la prioridad de operadores. Va evaluando mientras lee.
+    // Analiza fórmulas con prioridad de operadores.
     class Parser {
     public:
         Parser(const string& text, Evaluator& evaluator) : s_(text), eval_(evaluator) {}
 
-        // evalua toda la formula y revisa que no sobre nada
+        // Evalúa toda la fórmula.
         Value parse() {
             Value result = expr();
             spaces();
@@ -393,7 +390,7 @@ private:
         Evaluator& eval_;
         size_t p_ = 0;
 
-        // expr: term (+ term | - term | & term)*
+        // Suma, resta y concatenación.
         Value expr() {
             Value left = term();
             while (const char op = nextOperator("+-&")) {
@@ -401,7 +398,7 @@ private:
                     const Value right = term();
                     left = Value::str(left.display() + right.display());
                 } else {
-                    // el lado izquierdo se convierte primero, asi su error sale antes
+                    // Convierte primero el lado izquierdo.
                     const double a = left.asNumber();
                     const double b = term().asNumber();
                     left = Value::num(op == '+' ? a + b : a - b);
@@ -410,7 +407,7 @@ private:
             return left;
         }
 
-        // term: unary (* unary | / unary)*
+        // Multiplicación y división.
         Value term() {
             Value left = unary();
             while (const char op = nextOperator("*/")) {
@@ -427,7 +424,7 @@ private:
             return left;
         }
 
-        // unary: signos + y - de adelante; se aplican del mas cercano al valor hacia afuera
+        // Aplica signos iniciales.
         Value unary() {
             string signs;
             while (true) {
@@ -447,7 +444,7 @@ private:
             return value;
         }
 
-        // primary: (expr), texto, numero, funcion o celda
+        // Lee valores y expresiones básicas.
         Value primary() {
             if (take('(')) {
                 eval_.openNesting();
@@ -468,7 +465,7 @@ private:
             throw std::runtime_error("Expresion invalida en posicion " + std::to_string(p_));
         }
 
-        // lee los argumentos de una funcion (el '(' ya se leyo) y la ejecuta
+        // Lee y ejecuta una función.
         Value function(const string& name) {
             eval_.openNesting();
             Arguments args;
@@ -482,7 +479,7 @@ private:
             return callFunction(name, args);
         }
 
-        // un argumento puede ser un rango (A1:B3) o cualquier expresion
+        // Lee una expresión o un rango.
         void argument(Arguments& args) {
             spaces();
             const size_t start = p_;
@@ -495,7 +492,7 @@ private:
             }
         }
 
-        // agrega todas las celdas del rango, fila por fila
+        // Agrega las celdas de un rango.
         void range(const string& first, Arguments& args) {
             const string last = ident();
             if (!validCell(last)) throw std::runtime_error("Rango invalido");
@@ -513,7 +510,7 @@ private:
             }
         }
 
-        // lee un texto entre comillas o un numero; si no hay ninguno devuelve nullopt
+        // Lee texto o número.
         std::optional<Value> literal() {
             if (take('"')) return quotedText();
             spaces();
@@ -526,7 +523,7 @@ private:
             return std::nullopt;
         }
 
-        // lee un texto hasta la comilla de cierre; "" adentro es una comilla
+        // Lee una cadena entre comillas.
         Value quotedText() {
             string text;
             while (p_ < s_.size()) {
@@ -543,7 +540,7 @@ private:
             throw std::runtime_error("Cadena sin cerrar");
         }
 
-        // si sigue uno de los operadores lo consume y lo devuelve; si no devuelve 0
+        // Consume un operador permitido.
         char nextOperator(const string& ops) {
             spaces();
             if (p_ < s_.size() && ops.find(s_[p_]) != string::npos) return s_[p_++];
@@ -554,7 +551,7 @@ private:
             while (p_ < s_.size() && std::isspace(static_cast<unsigned char>(s_[p_]))) ++p_;
         }
 
-        // si el siguiente caracter es c lo consume y devuelve true
+        // Consume un carácter si coincide.
         bool take(char c) {
             spaces();
             if (p_ < s_.size() && s_[p_] == c) {
@@ -564,7 +561,7 @@ private:
             return false;
         }
 
-        // igual que take pero si no esta lanza error
+        // Exige un carácter.
         void expect(char c) {
             if (!take(c)) {
                 throw std::runtime_error(string("Se esperaba '") + c + "' en posicion " +
@@ -572,7 +569,7 @@ private:
             }
         }
 
-        // lee un nombre (de celda o de funcion) y lo pasa a mayusculas
+        // Lee un identificador y lo convierte a mayúsculas.
         string ident() {
             spaces();
             const size_t start = p_;

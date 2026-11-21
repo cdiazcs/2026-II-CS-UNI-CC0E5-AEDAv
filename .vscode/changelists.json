@@ -3,23 +3,11 @@
     {
       "name": "Default",
       "files": [
+        "pc4_texto/sql/btree_index.sql",
         ".vscode/changelists.json",
-        "Makefile",
-        "README.md",
-        "demos.cpp",
-        "demos.h",
-        "main.cpp",
-        "pc4_texto/Makefile",
-        "pc4_texto/README.md",
-        "pc4_texto/main.cpp",
-        "pc4_texto/test_texto",
-        "pc4_texto/tests/test_integration.sh",
-        "pc4_texto/tests/test_texto.cpp",
-        "pc4_texto/texto",
-        "pc4_texto/texto_excel.h",
-        ".gitignore",
-        "pc4_texto/tests/audit_depth.sh",
-        "pc4_texto/docs/indices_postgresql.md"
+        "pc4_texto/sql/gist_index.sql",
+        "pc4_texto/sql/hash_index.sql",
+        "pc4_texto/texto_excel.h"
       ]
     }
   ],
