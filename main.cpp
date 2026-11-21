@@ -1,8 +1,3 @@
-/**
- * @file main.cpp
- * @ingroup demos
- * @brief Punto de entrada principal que ejecuta las demostraciones del repositorio.
- */
 
 #include "demos.h"
 #include <exception>
@@ -11,12 +6,7 @@
 
 using namespace std;
 
-/**
- * @brief Ejecuta secuencialmente todas las demostraciones de estructuras de datos.
- *
- * Compilar con `make` y ejecutar con `./main`.
- * @return Código de salida del programa (`0` si finaliza correctamente).
- */
+
 int main(int argc, char* argv[]) {
     if (argc > 1) {
         if (argc != 2 || std::string_view(argv[1]) != "--texto") {
@@ -39,6 +29,7 @@ int main(int argc, char* argv[]) {
     DemoBinaryTree();
     DemoHashTable();
     DemoMerkleTree();
+    DemoExcelTexto();
     DemoGotoxy();
     return 0;
 }

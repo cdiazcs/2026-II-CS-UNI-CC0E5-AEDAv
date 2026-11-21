@@ -74,3 +74,7 @@ main
 *.txt
 tmp/
 output/
+
+# Ejecutables de pc4_texto
+pc4_texto/texto
+pc4_texto/test_texto

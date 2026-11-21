@@ -1,8 +1,4 @@
-/**
- * @file demos.cpp
- * @ingroup demos
- * @brief Implementación de las funciones de demostración declaradas en `demos.h`.
- */
+
 
 #include <filesystem>
 #include <iostream>
@@ -925,4 +921,75 @@ void DemoTexto() {
     cout << "LOAD " << path << '\n';
     cout << "RAW B1 -> " << loaded.get("B1") << '\n';
     cout << "GET B1 -> " << result.display() << '\n';
+}
+
+void DemoExcelTexto() {
+    cout << "\n";
+    cout << styled(" █ Pruebas para Excel Texto (HashTable) ").pure_black().bg_bright_yellow() << "\n\n";
+
+    pc4texto::Sheet sheet;
+    // escribe una celda y muestra el comando
+    auto set = [&](const string& cell, const string& raw) {
+        sheet.set(cell, raw);
+        cout << "SET " << cell << " " << raw << endl;
+    };
+    // calcula una celda y muestra el resultado (o el error)
+    auto get = [&](pc4texto::Sheet& from, const string& cell) {
+        cout << "GET " << cell << " -> ";
+        try {
+            const string shown = from.calculate(cell).display();
+            cout << shown << endl;
+        } catch (const runtime_error& error) {
+            PrintColored(cout, string("ERROR: ") + error.what(), Color::Red);
+        }
+    };
+
+    PrintColored(cout, "Funciones basicas:", Color::Green);
+    set("A1", "10");
+    set("A2", "20");
+    set("B1", "=SUMA(4,6)");
+    set("B2", "=PROMEDIO(A1,A2,30)");
+    set("B3", "=MAX(A1,MIN(8,4))");
+    set("B4", R"(=CONCAT("Hola ","UNI"))");
+    set("B5", R"(=MAYUSC("algoritmos"))");
+    for (const string cell : {"B1", "B2", "B3", "B4", "B5"}) get(sheet, cell);
+    cout << endl;
+
+    PrintColored(cout, "Parentesis anidados:", Color::Green);
+    set("C1", "=((1+2)*(3+4))/7");
+    set("C2", "=-(2+3)*-(1+1)");
+    set("C3", "=(A1+2)*(A2-5)");
+    for (const string cell : {"C1", "C2", "C3"}) get(sheet, cell);
+    cout << endl;
+
+    PrintColored(cout, "Rangos (A3 esta vacia y PROMEDIO/MIN la ignoran):", Color::Green);
+    set("D1", "=SUMA(A1:A3)");
+    set("D2", "=PROMEDIO(A1:A3)");
+    set("D3", "=MIN(A1:A3)");
+    set("D4", "=SUMA(A1:B2)");
+    for (const string cell : {"D1", "D2", "D3", "D4"}) get(sheet, cell);
+    cout << endl;
+
+    PrintColored(cout, "Referencia circular:", Color::Green);
+    set("E1", "=E2+1");
+    set("E2", "=E1+1");
+    get(sheet, "E1");
+    set("E2", "5");
+    get(sheet, "E1");
+    cout << endl;
+
+    PrintColored(cout, "SAVE / LOAD con operator<< y operator>> del HashTable:", Color::Green);
+    set("F1", R"(  texto con "comillas" y espacios  )");
+    filesystem::create_directories(OUTPUT_DIR_PATH);
+    const string path = (OUTPUT_DIR_PATH / "excel_texto.txt").string();
+    sheet.save(path);
+    cout << "SAVE " << path << endl;
+
+    pc4texto::Sheet loaded;
+    loaded.load(path);
+    cout << "LOAD " << path << " (" << loaded.size() << " celdas)" << endl;
+    cout << "RAW F1 -> [" << loaded.get("F1") << "]" << endl;
+    cout << "RAW D2 -> " << loaded.get("D2") << endl;
+    get(loaded, "D2");
+    get(loaded, "C1");
 }

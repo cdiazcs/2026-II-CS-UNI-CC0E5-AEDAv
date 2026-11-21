@@ -1,5 +1,7 @@
 CXX        := g++
 CXXFLAGS   := -std=c++23
+# -I. para que pc4_texto/texto_excel.h encuentre containers/ desde la raiz
+CPPFLAGS   := -I.
 TARGET     := main
 SRCS       := main.cpp demos.cpp
 PR_OUT     := tmp/pr_comment.md
@@ -11,7 +13,7 @@ DOCS_PORT  ?= 8000
 all: clean $(TARGET) run
 
 $(TARGET): $(SRCS) demos.h pc4_texto/texto_excel.h
-	$(CXX) $(CXXFLAGS) $(SRCS) -o $(TARGET)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(SRCS) -o $(TARGET)
 
 run: $(TARGET)
 	./$(TARGET)

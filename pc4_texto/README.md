@@ -1,40 +1,27 @@
-# PC4 — Excel Texto (IA)
+# PC4 — Excel Texto
 
-Implementacion independiente en C++23 sobre la rama `pc4-texto`, sin modificar los contenedores compartidos.
+Hoja de cálculo por consola hecha en C++23. Cada celda (`A1`, `B2`, ...) guarda un número, un texto o una fórmula que empieza con `=`, y se maneja con comandos como `SET A1 10`, `GET A1`, `SAVE hoja.txt` y `LOAD hoja.txt`.
 
-## Funcionalidades
-- **Funciones basicas:** `SUMA`/`SUM`, `PROMEDIO`/`AVERAGE`, `MIN`, `MAX`, `CONCAT`/`CONCATENAR`, `LARGO`/`LEN`, `MAYUSC`/`UPPER`, `MINUSC`/`LOWER`.
-- **Parentesis:** expresiones anidadas, prioridad `* /` sobre `+ -`, operadores unarios, concatenacion `&`.
-- **Celdas y rangos:** referencias `A1`, `B2`, rango `A1:A5` dentro de funciones; recalculo dinamico y deteccion de ciclos. Celda inexistente equivale a 0.
-- **Persistencia:** `SAVE` y `LOAD` con serializacion versionada que conserva el contenido original de cada celda, incluidas formulas y comillas. La carga valida antes de reemplazar la hoja.
-- **Indices SQL:** carpeta `sql/` con los ejercicios B-Tree, Hash y GiST adaptados del repositorio AEDA anterior. **Estos archivos son ejercicios PostgreSQL independientes; no constituyen indices internos de la hoja C++.**
+**Lo que implementamos**
 
-## Compilar, probar y ejecutar
+| Criterio | Qué soporta | Ejemplo |
+|---|---|---|
+| Funciones básicas | `SUMA`, `PROMEDIO`, `MIN`, `MAX`, `CONTAR`, `CONCAT`, `LARGO`, `MAYUSC`, `MINUSC` (también en inglés: `SUM`, `AVERAGE`, ...), con rangos `A1:B3` | `=PROMEDIO(A1:A3)` → 15 |
+| Soporta paréntesis | Paréntesis anidados, prioridad de `* /` sobre `+ -`, signos `-(...)` y `&` para unir textos | `=((1+2)*(3+4))/7` → 3 |
+| Persistencia | `SAVE` / `LOAD` usando el `operator<<` / `operator>>` de nuestro `HashTable`; si el archivo está corrupto, la hoja no cambia | `SAVE hoja.txt` → `LOAD hoja.txt` |
+
+**Cómo está hecho**
+- Las celdas se guardan en nuestro `HashTable` (por dentro es un AVL), así que cada acceso es O(log n).
+- Las fórmulas se evalúan con un parser recursivo descendente: `expr` → `term` → `unary` → `primary`.
+- Las referencias circulares se detectan como en un DFS (cada celda está no visitada, activa o completada).
+
+**Probar y ejecutar**
 
 ```bash
 cd pc4_texto
-make test
-make
-./texto
+make test      # 109 pruebas, resumen por grupo
+make && ./texto
 ```
 
-Ejemplo interactivo:
 
-```text
-SET A1 10
-SET A2 20
-SET B1 =SUMA(A1:A2)
-GET B1
-SET C1 =(A1+2)*(A2-5)
-GET C1
-SET D1 =CONCAT("Hola ","UNI")
-GET D1
-SAVE hoja.txt
-LOAD hoja.txt
-EXIT
-```
 
-Los scripts SQL requieren PostgreSQL y se ejecutan por separado con `psql -d mibd -f pc4_texto/sql/btree_index.sql` (analogamente `hash_index.sql`, `gist_index.sql`) desde la raiz del repo.
-
-## Limites documentados
-No implementa importacion/exportacion nativa `.xlsx` ni interfaz grafica ni interprete de IA. `LARGO` cuenta bytes (no caracteres Unicode); `MAYUSC` y `MINUSC` aplican conversion ASCII/locale C. Los indices SQL no estan conectados al modulo en memoria. El modulo constituye una base probada para integrar posteriormente una hoja Excel/IA real segun la rubrica completa.

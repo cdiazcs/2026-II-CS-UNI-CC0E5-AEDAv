@@ -1313,3 +1313,9 @@ mtree.draw(
     ConsoleGraphRenderer(std::cout)
 );
 ```
+
+## 📊 IV. PC4 — Hoja de cálculo por consola (Excel Texto)
+
+En `pc4_texto/` implementamos una hoja de cálculo simple por consola que guarda sus celdas en nuestro `HashTable` y usa su `operator<<` / `operator>>` para `SAVE` y `LOAD`. La demo `DemoExcelTexto()` se ejecuta junto con las demás al correr `./main`.
+
+Diseño, pruebas y limitaciones: [pc4_texto/README.md](pc4_texto/README.md).

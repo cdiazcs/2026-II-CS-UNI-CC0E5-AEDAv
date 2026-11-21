@@ -53,7 +53,7 @@ for log in first.log second.log; do
 done
 
 for sheet in "$first" "$second"; do
-    [[ $(head -n 1 "$sheet") == PC4TEXTO1 ]] || fail 'cabecera incorrecta'
+    [[ $(head -n 1 "$sheet") == PC4TEXTO2 ]] || fail 'cabecera incorrecta'
     printf 'LOAD %s\nRAW B1\nGET B1\nGET D1\nEXIT\n' "$sheet" | ./module/texto > cli.log
     for line in '> Cargado' '> =(A1+2)*3' '> 36' '> 6'; do
         grep -Fxq "$line" cli.log || fail "el CLI no produjo $line"

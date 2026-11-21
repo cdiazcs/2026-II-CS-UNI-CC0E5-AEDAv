@@ -1,8 +1,4 @@
-/**
- * @file demos.h
- * @ingroup demos
- * @brief Declaraciones de las funciones de demostración de estructuras de datos y utilidades.
- */
+
 
 #ifndef __DEMOS_H__
 #define __DEMOS_H__
@@ -29,5 +25,7 @@ void DemoMerkleTree();
 void DemoGotoxy();
 /** @brief Demostración de fórmulas y persistencia de PC4 Texto. */
 void DemoTexto();
+/** @brief Demostración de la hoja de cálculo de PC4 Texto sobre nuestro `HashTable`. */
+void DemoExcelTexto();
 
 #endif // __DEMOS_H__
