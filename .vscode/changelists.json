@@ -1,0 +1,21 @@
+{
+  "changelists": [
+    {
+      "name": "Default",
+      "files": [
+        ".vscode/settings.json",
+        ".vscode/c_cpp_properties.json",
+        ".vscode/launch.json",
+        "pc4_texto/Makefile",
+        "pc4_texto/README.md",
+        "pc4_texto/main.cpp",
+        "pc4_texto/sql/btree_index.sql",
+        "pc4_texto/sql/gist_index.sql",
+        "pc4_texto/sql/hash_index.sql",
+        "pc4_texto/tests/test_texto.cpp",
+        "pc4_texto/texto_excel.h"
+      ]
+    }
+  ],
+  "active": "Default"
+}

@@ -5,6 +5,9 @@
  */
 
 #include "demos.h"
+#include <exception>
+#include <iostream>
+#include <string_view>
 
 using namespace std;
 
@@ -14,7 +17,21 @@ using namespace std;
  * Compilar con `make` y ejecutar con `./main`.
  * @return Código de salida del programa (`0` si finaliza correctamente).
  */
-int main() {
+int main(int argc, char* argv[]) {
+    if (argc > 1) {
+        if (argc != 2 || std::string_view(argv[1]) != "--texto") {
+            std::cerr << "Uso: " << argv[0] << " [--texto]\n";
+            return 1;
+        }
+        try {
+            DemoTexto();
+            return 0;
+        } catch (const std::exception& error) {
+            std::cerr << "Error en DemoTexto: " << error.what() << '\n';
+            return 1;
+        }
+    }
+
     DemoVector();
     DemoRaceCondition();
     DemoLinkedList();

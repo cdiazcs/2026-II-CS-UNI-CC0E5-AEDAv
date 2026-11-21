@@ -9,6 +9,7 @@
 #include <ostream>
 #include <fstream> // ofstream para escribir en archivo
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <thread>
 #include <vector>
@@ -27,6 +28,7 @@
 #include "utilities/render.h"
 #include "utilities/layouts.h"
 #include "demos.h"
+#include "pc4_texto/texto_excel.h"
 using namespace std;
 
 filesystem::path OUTPUT_DIR_PATH = "output";
@@ -852,4 +854,75 @@ void DemoGotoxy() {
     cout << "Palabra '" << word << "' impresa con gotoxy(" << word_x << ", " << word_y << ")"
          << " dentro de la caja [" << box_x << ".." << (box_x + box_w - 1)
          << ", " << box_y << ".." << (box_y + box_h - 1) << "].\n\n";
+}
+
+
+void DemoTexto() {
+    pc4texto::Sheet sheet;
+    const auto set = [&](const string& cell, const string& raw) {
+        sheet.set(cell, raw);
+        cout << "SET " << cell << ' ' << raw << '\n';
+    };
+    const auto get = [&](const string& cell) {
+        const auto value = sheet.calculate(cell);
+        cout << "GET " << cell << " -> " << value.display() << '\n';
+        return value;
+    };
+
+    cout << "Demo PC4 Texto\n";
+    set("A1", "10");
+    set("A3", "20");
+    get("A1");
+
+    const string formula = "=(A1+2)*3";
+    set("B1", formula);
+    set("B2", "=A1+2*3");
+    cout << "RAW B1 -> " << sheet.get("B1") << '\n';
+    get("B1");
+    get("B2");
+
+    set("C1", "=SUMA(A1:A3)");
+    set("C2", "=PROMEDIO(A1:A3)");
+    set("C3", "=CONTAR(A1:A3)");
+    set("C4", R"(=CONCAT("UNI: ",A1,"/",A3))");
+    get("C1");
+    get("C2");
+    get("C3");
+    get("C4");
+
+    set("D1", "=D2+1");
+    set("D2", "=D1+1");
+    try {
+        sheet.calculate("D1");
+        throw runtime_error("Se esperaba una referencia circular");
+    } catch (const runtime_error& error) {
+        if (string(error.what()) != "Referencia circular: D1") throw;
+        cout << "GET D1 -> ERROR: " << error.what() << '\n';
+    }
+    set("D2", "5");
+    const auto recovered = get("D1");
+    if (!recovered.numeric || recovered.number != 6)
+        throw runtime_error("D1 debe dar 6 tras corregir el ciclo");
+
+    filesystem::create_directories(OUTPUT_DIR_PATH);
+    filesystem::path directory;
+    for (size_t attempt = 1; ; ++attempt) {
+        directory = OUTPUT_DIR_PATH / ("pc4-texto-" + to_string(attempt));
+        error_code error;
+        if (filesystem::create_directory(directory, error)) break;
+        if (error && error != errc::file_exists)
+            throw filesystem::filesystem_error("No se pudo crear la salida de PC4 Texto", directory, error);
+    }
+    const auto path = (directory / "hoja.txt").string();
+    sheet.save(path);
+
+    pc4texto::Sheet loaded;
+    loaded.load(path);
+    const auto result = loaded.calculate("B1");
+    if (loaded.get("B1") != formula || !result.numeric || result.number != 36)
+        throw runtime_error("B1 debe conservar su fórmula y dar 36 tras cargar");
+    cout << "SAVE " << path << '\n';
+    cout << "LOAD " << path << '\n';
+    cout << "RAW B1 -> " << loaded.get("B1") << '\n';
+    cout << "GET B1 -> " << result.display() << '\n';
 }

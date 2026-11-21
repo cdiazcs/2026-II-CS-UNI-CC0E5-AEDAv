@@ -10,7 +10,7 @@ DOCS_PORT  ?= 8000
 
 all: clean $(TARGET) run
 
-$(TARGET): $(SRCS)
+$(TARGET): $(SRCS) demos.h pc4_texto/texto_excel.h
 	$(CXX) $(CXXFLAGS) $(SRCS) -o $(TARGET)
 
 run: $(TARGET)

@@ -1,0 +1,63 @@
+BEGIN
+psql:pc4_texto/sql/btree_index.sql:13: NOTICE:  schema "pc4_texto_demo" already exists, skipping
+CREATE SCHEMA
+SET
+DROP TABLE
+CREATE TABLE
+ setseed
+---------
+
+(1 row)
+
+INSERT 0 100000
+ANALYZE
+                                                  QUERY PLAN
+--------------------------------------------------------------------------------------------------------------
+ Seq Scan on empleados  (cost=0.00..2137.00 rows=574 width=21) (actual time=0.009..5.764 rows=552.00 loops=1)
+   Filter: ((salario >= 8000) AND (salario <= 8050))
+   Rows Removed by Filter: 99448
+   Buffers: shared hit=637
+ Planning:
+   Buffers: shared hit=23
+ Planning Time: 0.136 ms
+ Execution Time: 5.791 ms
+(8 rows)
+
+CREATE INDEX
+ANALYZE
+                                                          QUERY PLAN
+-------------------------------------------------------------------------------------------------------------------------------
+ Bitmap Heap Scan on empleados  (cost=9.78..655.71 rows=535 width=21) (actual time=0.140..0.432 rows=552.00 loops=1)
+   Recheck Cond: ((salario >= 8000) AND (salario <= 8050))
+   Heap Blocks: exact=382
+   Buffers: shared hit=382 read=2
+   ->  Bitmap Index Scan on idx_emp_salario  (cost=0.00..9.64 rows=535 width=0) (actual time=0.050..0.050 rows=552.00 loops=1)
+         Index Cond: ((salario >= 8000) AND (salario <= 8050))
+         Index Searches: 1
+         Buffers: shared read=2
+ Planning:
+   Buffers: shared hit=16 read=1
+ Planning Time: 0.096 ms
+ Execution Time: 0.459 ms
+(12 rows)
+
+                                                                  QUERY PLAN
+----------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=0.29..0.74 rows=10 width=17) (actual time=0.017..0.023 rows=10.00 loops=1)
+   Buffers: shared hit=11 read=1
+   ->  Index Scan using idx_emp_salario on empleados  (cost=0.29..4496.29 rows=100000 width=17) (actual time=0.017..0.021 rows=10.00 loops=1)
+         Index Searches: 1
+         Buffers: shared hit=11 read=1
+ Planning:
+   Buffers: shared hit=8
+ Planning Time: 0.054 ms
+ Execution Time: 0.029 ms
+(9 rows)
+
+    indexname    |                                    indexdef
+-----------------+---------------------------------------------------------------------------------
+ empleados_pkey  | CREATE UNIQUE INDEX empleados_pkey ON pc4_texto_demo.empleados USING btree (id)
+ idx_emp_salario | CREATE INDEX idx_emp_salario ON pc4_texto_demo.empleados USING btree (salario)
+(2 rows)
+
+COMMIT

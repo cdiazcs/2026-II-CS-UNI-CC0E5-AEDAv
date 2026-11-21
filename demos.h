@@ -27,5 +27,7 @@ void DemoHashTable();
 void DemoMerkleTree();
 /** @brief Demostración de posicionamiento directo en consola con `gotoxy`. */
 void DemoGotoxy();
+/** @brief Demostración de fórmulas y persistencia de PC4 Texto. */
+void DemoTexto();
 
 #endif // __DEMOS_H__

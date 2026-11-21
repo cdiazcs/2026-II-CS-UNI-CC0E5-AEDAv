@@ -1,0 +1,54 @@
+BEGIN
+psql:pc4_texto/sql/hash_index.sql:14: NOTICE:  schema "pc4_texto_demo" already exists, skipping
+CREATE SCHEMA
+SET
+psql:pc4_texto/sql/hash_index.sql:17: NOTICE:  table "sesiones" does not exist, skipping
+DROP TABLE
+CREATE TABLE
+INSERT 0 100000
+ANALYZE
+                                               QUERY PLAN
+---------------------------------------------------------------------------------------------------------
+ Seq Scan on sesiones  (cost=0.00..2084.00 rows=1 width=38) (actual time=3.885..7.079 rows=1.00 loops=1)
+   Filter: (token = '24a2140113711d15785f6c1d00e2bb36'::text)
+   Rows Removed by Filter: 99999
+   Buffers: shared hit=834
+ Planning:
+   Buffers: shared hit=25
+ Planning Time: 0.144 ms
+ Execution Time: 7.090 ms
+(8 rows)
+
+CREATE INDEX
+ANALYZE
+                                                         QUERY PLAN
+----------------------------------------------------------------------------------------------------------------------------
+ Index Scan using idx_ses_token on sesiones  (cost=0.00..8.02 rows=1 width=38) (actual time=0.011..0.012 rows=1.00 loops=1)
+   Index Cond: (token = '24a2140113711d15785f6c1d00e2bb36'::text)
+   Index Searches: 1
+   Buffers: shared hit=3
+ Planning:
+   Buffers: shared hit=13
+ Planning Time: 0.088 ms
+ Execution Time: 0.021 ms
+(8 rows)
+
+                                                    QUERY PLAN
+------------------------------------------------------------------------------------------------------------------
+ Seq Scan on sesiones  (cost=0.00..2084.00 rows=85596 width=38) (actual time=0.009..10.613 rows=85778.00 loops=1)
+   Filter: (token > '24a2140113711d15785f6c1d00e2bb36'::text)
+   Rows Removed by Filter: 14222
+   Buffers: shared hit=834
+ Planning:
+   Buffers: shared hit=5
+ Planning Time: 0.309 ms
+ Execution Time: 13.970 ms
+(8 rows)
+
+   indexname   |                                   indexdef
+---------------+-------------------------------------------------------------------------------
+ sesiones_pkey | CREATE UNIQUE INDEX sesiones_pkey ON pc4_texto_demo.sesiones USING btree (id)
+ idx_ses_token | CREATE INDEX idx_ses_token ON pc4_texto_demo.sesiones USING hash (token)
+(2 rows)
+
+COMMIT

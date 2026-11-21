@@ -1,0 +1,9 @@
+100000
+100000
+50000
+idx_emp_salario|btree|t|CREATE INDEX idx_emp_salario ON pc4_texto_demo.empleados USING btree (salario)
+idx_lugares_pos|gist|t|CREATE INDEX idx_lugares_pos ON pc4_texto_demo.lugares USING gist (pos)
+idx_ses_token|hash|t|CREATE INDEX idx_ses_token ON pc4_texto_demo.sesiones USING hash (token)
+intacto
+intacto
+intacto
